@@ -21,7 +21,26 @@ Mit eigenen Werten:
 .\gradlew run --args="https://example.com files\mein-qr.png"
 ```
 
-Ergebnisdateien liegen standardmäßig im Ordner `files/`.
+## Output-Dateiname festlegen
+
+Der Output-Name wird über den **2. Parameter** gesetzt:
+
+```powershell
+.\gradlew run --args="INHALT DATEIPFAD"
+```
+
+Beispiele:
+
+```powershell
+.\gradlew run --args="https://example.com files\mein-qr.png"
+.\gradlew run --args="mailto:max@example.com files\kontakt.png"
+```
+
+Wenn kein 2. Parameter gesetzt ist, wird der Default verwendet:
+
+```text
+files/tennis.png
+```
 
 ## `mailto`-Link
 
