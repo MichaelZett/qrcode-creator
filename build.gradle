@@ -1,0 +1,79 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.github.ben-manes:gradle-versions-plugin:${benManesVersionsPluginVersion}"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.github.ben-manes.versions'
+
+group = 'de.zettsystems'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "com.google.zxing:core:${zxingVersion}"
+    implementation "com.google.zxing:javase:${zxingVersion}"
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    runtimeOnly "org.slf4j:slf4j-simple:${slf4jVersion}"
+
+    testImplementation platform("org.junit:junit-bom:${junitBomVersion}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = 'de.zettsystems.qrcreator.QrCreatorMain'
+}
+
+def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { keyword ->
+        version?.toUpperCase()?.contains(keyword)
+    }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+def majorVersion = { String version ->
+    def matcher = (version ?: '') =~ /(\d+)/
+    matcher.find() ? matcher.group(1).toInteger() : null
+}
+
+tasks.withType(DependencyUpdatesTask).configureEach { task ->
+    boolean minorPatchOnly = project.hasProperty('dependencyUpdates.minorPatchOnly') &&
+            project.property('dependencyUpdates.minorPatchOnly').toString().toBoolean()
+
+    task.checkForGradleUpdate = true
+    task.outputFormatter = 'plain'
+
+    task.rejectVersionIf {
+        String candidate = it.candidate.version
+        String current = it.currentVersion
+
+        if (isNonStable(candidate as String)) {
+            return true
+        }
+
+        if (!minorPatchOnly) {
+            return false
+        }
+
+        Integer currentMajor = majorVersion(current as String) as Integer
+        Integer candidateMajor = majorVersion(candidate as String) as Integer
+        return currentMajor != null && candidateMajor != null && candidateMajor > currentMajor
+    }
+}
