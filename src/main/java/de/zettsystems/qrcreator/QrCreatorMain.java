@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 
 public final class QrCreatorMain {
-    static final String DEFAULT_INPUT = "https://www.tennis.de/";
-    static final String DEFAULT_OUTPUT_FILE = "files/tennis.png";
+    static final String DEFAULT_INPUT = "https://www.tg-heimfeld.com/";
+    static final String DEFAULT_OUTPUT_FILE = "files/tgh.png";
     private static final Logger LOG = LoggerFactory.getLogger(QrCreatorMain.class);
 
     private QrCreatorMain() {
