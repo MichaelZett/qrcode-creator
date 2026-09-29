@@ -60,7 +60,8 @@ jobs:
           java-version: 25
       - uses: gradle/actions/setup-gradle@v4
       - name: App-Image mit jpackage bauen
-        run: ./gradlew appImage -PreleaseVersion=${{ needs.version.outputs.version }}
+        shell: bash
+        run: ./gradlew appImage "-PreleaseVersion=${{ needs.version.outputs.version }}"
       - name: Zippen
         shell: bash
         run: |
