@@ -1,0 +1,94 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-sonar:
+    name: Test & SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Sonar braucht die volle Historie
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test
+        run: ./gradlew build
+      - name: SonarCloud
+        # Secrets sind bei Fork-PRs nicht verfügbar
+        if: env.SONAR_TOKEN != ''
+        run: ./gradlew sonar
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        # 1.0.<Run-Nummer>; Major/Minor hier anheben, um neue Linie zu starten
+        run: echo "version=1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+  package:
+    name: Paket (${{ matrix.name }})
+    needs: [test-and-sonar, version]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux, os: ubuntu-latest }
+          - { name: windows, os: windows-latest }
+          - { name: macos, os: macos-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+      - name: App-Image mit jpackage bauen
+        shell: bash
+        run: ./gradlew appImage "-PreleaseVersion=${{ needs.version.outputs.version }}"
+      - name: Zippen
+        shell: bash
+        run: |
+          cd build/app-image
+          7z a -tzip "../../qr-creator-${{ matrix.name }}.zip" ./*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qr-creator-${{ matrix.name }}
+          path: qr-creator-${{ matrix.name }}.zip
+
+  release:
+    name: GitHub Release
+    # Nur manuell: Actions -> Build -> "Run workflow" auf main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    needs: [package, version]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: QR-Creator ${{ needs.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          files: dist/*.zip
+          generate_release_notes: true
