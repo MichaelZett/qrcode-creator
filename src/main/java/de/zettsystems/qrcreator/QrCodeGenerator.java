@@ -6,6 +6,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,23 +32,18 @@ public class QrCodeGenerator {
     }
 
     public void writeToFile(String input, int width, int height, Path outputFile) {
-        try {
-            if (input == null || input.isBlank()) {
-                throw new IllegalArgumentException("input darf nicht leer sein");
-            }
-            if (width <= 0 || height <= 0) {
-                throw new IllegalArgumentException("width und height müssen > 0 sein");
-            }
+        writeImage(generate(input, width, height), outputFile);
+    }
 
-            QRCodeWriter writer = new QRCodeWriter();
-            BitMatrix matrix = writer.encode(input, BarcodeFormat.QR_CODE, width, height);
-            Path parent = outputFile.getParent();
+    public void writeImage(BufferedImage image, Path outputFile) {
+        try {
+            Path parent = outputFile.toAbsolutePath().getParent();
             if (parent != null) {
                 Files.createDirectories(parent);
             }
-            MatrixToImageWriter.writeToPath(matrix, "PNG", outputFile);
-        } catch (WriterException e) {
-            throw new IllegalStateException("QR-Code konnte nicht erzeugt werden", e);
+            if (!ImageIO.write(image, "PNG", outputFile.toFile())) {
+                throw new IllegalStateException("Kein PNG-Writer verfügbar");
+            }
         } catch (IOException e) {
             throw new IllegalStateException("QR-Code konnte nicht geschrieben werden", e);
         }

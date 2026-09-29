@@ -6,16 +6,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${sonarPluginVersion}"
         classpath "com.github.ben-manes:gradle-versions-plugin:${benManesVersionsPluginVersion}"
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'jacoco'
+apply plugin: 'org.sonarqube'
 apply plugin: 'com.github.ben-manes.versions'
 
 group = 'de.zettsystems'
-version = '1.0-SNAPSHOT'
+version = project.findProperty('releaseVersion') ?: '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -29,11 +32,73 @@ dependencies {
 
     testImplementation platform("org.junit:junit-bom:${junitBomVersion}")
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = jacocoVersion
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
+sonar {
+    properties {
+        property 'sonar.projectKey', 'MichaelZett_qrcode-creator'
+        property 'sonar.organization', 'michaelzett'
+        property 'sonar.host.url', 'https://sonarcloud.io'
+        // Swing-Oberfläche ist nicht headless testbar
+        property 'sonar.coverage.exclusions', '**/QrCreatorApp.java'
+    }
+}
+
+// Kleines, ausführbares Paket pro Betriebssystem: jpackage (Teil des JDK) bündelt
+// die Anwendung mit einer per jlink auf java.desktop geschrumpften Laufzeit.
+// jpackage baut nur für das Betriebssystem, auf dem es läuft -> CI-Matrix.
+tasks.register('appImage', Exec) {
+    group = 'distribution'
+    description = 'Erzeugt ein eigenständiges App-Image (mit minimaler JRE) für das aktuelle Betriebssystem'
+    dependsOn jar
+
+    def inputDir = layout.buildDirectory.dir('jpackage-input')
+    def outputDir = layout.buildDirectory.dir('app-image')
+
+    doFirst {
+        delete inputDir, outputDir
+        copy {
+            from jar
+            from configurations.runtimeClasspath
+            into inputDir
+        }
+    }
+
+    def jpackageArgs = [
+            'jpackage',
+            '--type', 'app-image',
+            '--name', 'QR-Creator',
+            '--app-version', project.version.toString().replace('-SNAPSHOT', ''),
+            '--input', inputDir.get().asFile.path,
+            '--main-jar', jar.archiveFileName.get(),
+            '--main-class', application.mainClass.get(),
+            '--dest', outputDir.get().asFile.path,
+            '--add-modules', 'java.desktop',
+            '--jlink-options', '--strip-debug --no-header-files --no-man-pages --compress zip-9'
+    ]
+    commandLine jpackageArgs
 }
 
 application {
