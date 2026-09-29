@@ -14,6 +14,10 @@ public final class QrCreatorMain {
     }
 
     static void main(String[] args) {
+        if (args == null || args.length == 0) {
+            QrCreatorApp.start();
+            return;
+        }
         String input = resolveInput(args);
         Path outputFile = resolveOutputFile(args);
 
