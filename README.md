@@ -13,7 +13,7 @@ ZIP entpacken und `QR-Creator` (`QR-Creator.exe` unter Windows) starten.
 
 Gebaut wird mit `jpackage` (Teil des JDK) – das geht nur für das jeweilige Host-System, daher
 baut die GitHub-Actions-Matrix (`.github/workflows/build.yml`) auf Linux, Windows und macOS.
-Lokal: `./gradlew appImage` → `build/app-image/`. Jeder Push auf `main` (nach grüner Pipeline) erzeugt automatisch Tag `v1.0.<Run-Nr>` und ein GitHub-Release mit den drei ZIPs.
+Lokal: `./gradlew appImage` → `build/app-image/`. Ein Release (Tag `v1.0.<Run-Nr>` + GitHub-Release mit den drei ZIPs) entsteht nur manuell: Actions → Build → „Run workflow“ auf `main`. Ein Merge erzeugt kein Release.
 
 ## SonarCloud
 

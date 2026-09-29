@@ -73,8 +73,8 @@ jobs:
 
   release:
     name: GitHub Release
-    # Jeder Push auf main erzeugt automatisch Tag + Release
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Nur manuell: Actions -> Build -> "Run workflow" auf main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     needs: [package, version]
     runs-on: ubuntu-latest
     permissions:
