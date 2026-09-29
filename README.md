@@ -2,7 +2,7 @@
 
 Kleines Java-Tool zum Erzeugen von QR-Codes aus einem Text (z. B. URL) als PNG-Datei.
 
-Ohne Argumente startet eine kleine Oberfläche (URL/Text eingeben, QR-Code ansehen, als PNG speichern).
+Ohne Argumente startet eine kleine Oberfläche: Typ per RadioButton wählen (URL/Text, E-Mail `mailto:`, Telefon `tel:`, WLAN), Daten eingeben, QR-Code ansehen, als PNG speichern.
 Mit Argumenten arbeitet das Tool als Kommandozeilenprogramm (siehe unten).
 
 ## Download
@@ -13,7 +13,7 @@ ZIP entpacken und `QR-Creator` (`QR-Creator.exe` unter Windows) starten.
 
 Gebaut wird mit `jpackage` (Teil des JDK) – das geht nur für das jeweilige Host-System, daher
 baut die GitHub-Actions-Matrix (`.github/workflows/build.yml`) auf Linux, Windows und macOS.
-Lokal: `./gradlew appImage` → `build/app-image/`. Ein Release entsteht durch einen Tag `vX.Y.Z`.
+Lokal: `./gradlew appImage` → `build/app-image/`. Jeder Push auf `main` (nach grüner Pipeline) erzeugt automatisch Tag `v1.0.<Run-Nr>` und ein GitHub-Release mit den drei ZIPs.
 
 ## SonarCloud
 
