@@ -2,6 +2,6 @@
 
 ## 1.0.0 - 2026-09-30
 
-- Swing-Oberfläche zum Erzeugen von QR-Codes (URL/Text, E-Mail, Telefon, WLAN) mit PNG-Export.
-- Kommandozeilenmodus mit Inhalt und Ausgabedatei als Argumente.
-- Eigenständige Pakete (mit minimaler Java-Laufzeit) für Windows, macOS und Linux.
+- Swing UI for creating QR codes (URL/text, email, phone, Wi-Fi) with PNG export.
+- Command-line mode with content and output file as arguments.
+- Self-contained packages (with a minimal Java runtime) for Windows, macOS and Linux.

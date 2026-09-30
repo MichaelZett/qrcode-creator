@@ -1,86 +1,116 @@
 # qr-creator
 
-Kleines Java-Tool zum Erzeugen von QR-Codes aus einem Text (z. B. URL) als PNG-Datei.
+Small Java tool that creates QR codes (URL/text, email, phone, Wi-Fi) as PNG files.
 
-Ohne Argumente startet eine kleine Oberfläche: Typ per RadioButton wählen (URL/Text, E-Mail `mailto:`, Telefon `tel:`, WLAN), Daten eingeben, QR-Code ansehen, als PNG speichern.
-Mit Argumenten arbeitet das Tool als Kommandozeilenprogramm (siehe unten).
+Without arguments it opens a small UI: pick the type via radio button (URL/Text, email `mailto:`, phone `tel:`,
+Wi-Fi), enter the data, look at the QR code, save it as PNG. The UI is available in German and English; the
+language follows the system language and can be switched at the top right.
+With arguments the tool runs as a command-line program (see below).
 
 ## Download
 
-Unter [Releases](../../releases) gibt es pro Betriebssystem (Windows, macOS, Linux) ein ZIP mit
-einem eigenständigen Programm inkl. minimaler Java-Laufzeit – Java muss nicht installiert sein.
-ZIP entpacken und `QR-Creator` (`QR-Creator.exe` unter Windows) starten.
+[Releases](../../releases) offer one ZIP per operating system (Windows, macOS, Linux) containing a self-contained
+program including a minimal Java runtime – Java does not need to be installed.
+Unzip and start `QR-Creator` (`QR-Creator.exe` on Windows). Each release also has a `SHA256SUMS` file (and
+`SHA256SUMS.asc` if a GPG key is configured) to verify the downloads.
 
-Gebaut wird mit `jpackage` (Teil des JDK) – das geht nur für das jeweilige Host-System, daher
-baut die GitHub-Actions-Matrix (`.github/workflows/build.yml`) auf Linux, Windows und macOS.
-Lokal: `./gradlew appImage` → `build/app-image/`. 
-Release-Prozess:
+The Windows executable is signed if SignPath is configured (see *Signing*). The macOS package is
+not signed or notarized, so Gatekeeper may block it.
 
-1. In `gradle.properties` den Suffix `-SNAPSHOT` von `appVersion` entfernen.
-2. In `CHANGELOG.md` den Abschnitt `## <appVersion> - <Datum>` anlegen (wird zum Release-Text).
-3. Auf `main` pushen: Die CI testet, baut die drei ZIPs, taggt `v<appVersion>` und erstellt das GitHub-Release.
-4. Danach setzt die CI `appVersion` selbst auf die nächste `-SNAPSHOT`-Version (`[skip ci]`) – vor dem Weiterarbeiten `git pull`.
+Packages are built with `jpackage` (part of the JDK), which only works for the host system, so the GitHub Actions
+matrix (`.github/workflows/build.yml`) builds on Linux, Windows and macOS.
+Locally: `./gradlew appImage` → `build/app-image/`.
 
-Bei `-SNAPSHOT`-Versionen wird nur getestet, analysiert und das Paketieren geprüft – es entsteht kein Release.
+## Release process
+
+1. Remove the `-SNAPSHOT` suffix from `appVersion` in `gradle.properties`.
+2. Add a section `## <appVersion> - <date>` to `CHANGELOG.md` (it becomes the release text).
+3. Push to `main`: CI tests, analyzes, builds the three ZIPs, tags `v<appVersion>` and creates the GitHub release.
+4. CI then sets `appVersion` to the next `-SNAPSHOT` version (`[skip ci]`) – run `git pull` before continuing.
+
+For `-SNAPSHOT` versions CI only tests, analyzes and checks that packaging works – no release is created.
+
+## Signing
+
+Signing is optional and only happens for releases. Without the configuration the steps are skipped.
+
+- **Windows** (`QR-Creator.exe`): signed through [SignPath](https://signpath.io), which is free for open-source
+  projects. The private key stays in SignPath's HSM. Setup:
+  1. Apply for a free certificate at [signpath.org](https://signpath.org) (the SignPath Foundation), using this
+     repository and its Apache-2.0 license.
+  2. In SignPath create the project, an artifact configuration from
+     [`.signpath/artifact-configuration.xml`](.signpath/artifact-configuration.xml) and a release signing policy;
+     add the GitHub.com trusted build system and install the SignPath GitHub App.
+  3. In the repository set the secret `SIGNPATH_API_TOKEN` and the variables `SIGNPATH_ORGANIZATION_ID`,
+     `SIGNPATH_PROJECT_SLUG` and `SIGNPATH_SIGNING_POLICY_SLUG`:
+
+     ```powershell
+     gh secret set SIGNPATH_API_TOKEN
+     gh variable set SIGNPATH_ORGANIZATION_ID
+     gh variable set SIGNPATH_PROJECT_SLUG
+     gh variable set SIGNPATH_SIGNING_POLICY_SLUG
+     ```
+
+  Free code signing provided by [SignPath.io](https://signpath.io), certificate by
+  [SignPath Foundation](https://signpath.org).
+- **Linux** has no OS-level signing. The release always contains `SHA256SUMS`. If the secrets `GPG_PRIVATE_KEY`
+  (ASCII-armored private key) and `GPG_PASSPHRASE` are set, `SHA256SUMS.asc` (detached signature) is added.
+- **macOS** is not signed yet (needs an Apple Developer account, `jpackage --mac-sign` and notarization).
 
 ## SonarCloud
 
-Analyse läuft in der CI (`./gradlew sonar`). Einrichtung: Projekt `MichaelZett_qrcode-creator`
-in Organisation `michaelzett` auf sonarcloud.io anlegen, „Automatic Analysis“ deaktivieren und
-das Token als Repository-Secret `SONAR_TOKEN` hinterlegen. Abweichende Keys in `build.gradle` (`sonar { }`) anpassen.
+The analysis runs in CI (`./gradlew sonar`). Setup: create the project `MichaelZett_qrcode-creator` in the
+organization `michaelzett` on sonarcloud.io, disable "Automatic Analysis" and store the token as repository secret
+`SONAR_TOKEN`. Adjust the keys in `build.gradle` (`sonar { }`) if they differ.
 
-## Voraussetzungen
+## Requirements
 
 - Java 25
-- Gradle Wrapper (`gradlew` / `gradlew.bat`)
+- Gradle wrapper (`gradlew` / `gradlew.bat`)
 
-## Starten
-
-Default-Werte verwenden (Text + Ausgabedatei):
+## Run
 
 ```powershell
 .\gradlew run
 ```
 
-Mit eigenen Werten:
+starts the UI. With arguments it creates a PNG on the command line:
 
 ```powershell
-.\gradlew run --args="https://example.com files\mein-qr.png"
+.\gradlew run --args="https://example.com files\my-qr.png"
 ```
 
-## Output-Dateiname festlegen
-
-Der Output-Name wird über den **2. Parameter** gesetzt:
+## Command line
 
 ```powershell
-.\gradlew run --args="INHALT DATEIPFAD"
+.\gradlew run --args="CONTENT OUTPUT_FILE"
 ```
 
-Beispiele:
+The output file is set by the **second parameter**:
 
 ```powershell
-.\gradlew run --args="https://example.com files\mein-qr.png"
-.\gradlew run --args="mailto:max@example.com files\kontakt.png"
+.\gradlew run --args="https://example.com files\my-qr.png"
+.\gradlew run --args="mailto:max@example.com files\contact.png"
 ```
 
-Wenn kein 2. Parameter gesetzt ist, wird der Default verwendet:
+Defaults if a parameter is missing: content `https://www.tg-heimfeld.com/`, output file `files/tgh.png`.
 
-```text
-files/tennis.png
-```
+## `mailto` links
 
-## `mailto`-Link
-
-Ein einfacher `mailto`-Link:
+A simple `mailto` link:
 
 ```text
 mailto:max.mustermann@example.com
 ```
 
-Mit Betreff und Text:
+With subject and body:
 
 ```text
-mailto:max.mustermann@example.com?subject=Anfrage&body=Hallo%20Max%2C%0Aich%20habe%20eine%20Frage.
+mailto:max.mustermann@example.com?subject=Request&body=Hello%20Max%2C%0AI%20have%20a%20question.
 ```
 
-Wichtig: Sonderzeichen und Leerzeichen URL-encoden (z. B. Leerzeichen = `%20`, Zeilenumbruch = `%0A`).
+Important: URL-encode special characters and spaces (e.g. space = `%20`, line break = `%0A`).
+
+## License
+
+[Apache-2.0](LICENSE)

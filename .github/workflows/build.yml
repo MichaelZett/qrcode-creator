@@ -17,12 +17,12 @@ jobs:
     name: Test & SonarCloud
     runs-on: ubuntu-latest
     env:
-      # Job-Ebene: nur dort ist das Secret im `if` der Steps sichtbar
+      # Job level: only there is the secret visible in the `if` of steps
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Sonar braucht die volle Historie
+          fetch-depth: 0 # Sonar needs the full history
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
@@ -31,7 +31,7 @@ jobs:
       - name: Test
         run: ./gradlew build
       - name: SonarCloud
-        # Secrets sind bei Fork-PRs nicht verfügbar
+        # Secrets are not available for fork PRs
         if: env.SONAR_TOKEN != ''
         run: ./gradlew sonar
 
@@ -52,7 +52,7 @@ jobs:
           release=false
           if [[ "$snapshot" == false && "$GITHUB_REF" == refs/heads/main && "$GITHUB_EVENT_NAME" == push ]]; then
             release=true
-            grep -q "^## ${version} - " CHANGELOG.md || { echo "::error::CHANGELOG.md hat keinen Eintrag '## ${version} - <Datum>'"; exit 1; }
+            grep -q "^## ${version} - " CHANGELOG.md || { echo "::error::CHANGELOG.md has no entry '## ${version} - <date>'"; exit 1; }
           fi
           {
             echo "version=$version"
@@ -61,7 +61,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
   package:
-    name: Paket (${{ matrix.name }})
+    name: Package (${{ matrix.name }})
     needs: [test-and-sonar, version]
     strategy:
       fail-fast: false
@@ -71,6 +71,12 @@ jobs:
           - { name: windows, os: windows-latest }
           - { name: macos, os: macos-latest }
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      actions: read # SignPath reads the job details
+    env:
+      # Optional Windows code signing via SignPath (free for open source); skipped without token
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
@@ -78,27 +84,51 @@ jobs:
           distribution: temurin
           java-version: 25
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-      - name: App-Image mit jpackage bauen
+      - name: Build app image with jpackage
         shell: bash
         run: ./gradlew appImage
-      - name: Zippen
+      - name: Upload unsigned Windows executable
+        # Release builds only, and only if SignPath is configured
+        if: matrix.name == 'windows' && needs.version.outputs.release == 'true' && env.SIGNPATH_API_TOKEN != ''
+        id: upload-unsigned
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-windows-exe
+          path: build/app-image/QR-Creator/QR-Creator.exe
+          retention-days: 1
+      - name: Sign Windows executable with SignPath
+        if: steps.upload-unsigned.outcome == 'success'
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - name: Replace executable with the signed one
+        if: steps.upload-unsigned.outcome == 'success'
+        shell: bash
+        run: cp signed/QR-Creator.exe build/app-image/QR-Creator/QR-Creator.exe
+      - name: Zip
         if: needs.version.outputs.release == 'true'
         shell: bash
         run: |
           cd build/app-image
           7z a -tzip "../../qr-creator-${{ matrix.name }}.zip" ./*
-      - name: ZIP für das Release bereitstellen
+      - name: Provide ZIP for the release
         if: needs.version.outputs.release == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qr-creator-${{ matrix.name }}
           path: qr-creator-${{ matrix.name }}.zip
           retention-days: 1
-          compression-level: 0 # ZIP ist bereits komprimiert
+          compression-level: 0 # ZIP is already compressed
 
   release:
     name: GitHub Release
-    # Nur für Nicht-SNAPSHOT-Versionen per Push auf main
+    # Only for non-SNAPSHOT versions pushed to main
     if: needs.version.outputs.release == 'true' && needs.package.result == 'success'
     needs: [package, version]
     runs-on: ubuntu-latest
@@ -112,20 +142,40 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      - name: Release-Notes aus CHANGELOG.md
+      - name: Release notes from CHANGELOG.md
         run: |
           awk -v h="## ${VERSION} - " 'index($0,h)==1{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
-          [ -s notes.md ] || { echo "::error::Leerer CHANGELOG-Abschnitt für ${VERSION}"; exit 1; }
+          [ -s notes.md ] || { echo "::error::Empty CHANGELOG section for ${VERSION}"; exit 1; }
+      - name: Checksums and optional GPG signature
+        id: sums
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          cd dist
+          sha256sum *.zip > SHA256SUMS
+          files="dist/*.zip"$'\n'"dist/SHA256SUMS"
+          if [ -n "$GPG_PRIVATE_KEY" ]; then
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+            gpg --batch --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+              --armor --detach-sign SHA256SUMS
+            files="$files"$'\n'"dist/SHA256SUMS.asc"
+          fi
+          {
+            echo "files<<EOF"
+            echo "$files"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: v${{ env.VERSION }}
           name: QR-Creator ${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
           body_path: notes.md
-          files: dist/*.zip
+          files: ${{ steps.sums.outputs.files }}
 
   bump:
-    name: Nächste SNAPSHOT-Version
+    name: Next SNAPSHOT version
     needs: [release, version]
     runs-on: ubuntu-latest
     permissions:
@@ -134,7 +184,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
-      - name: appVersion hochzählen
+      - name: Increment appVersion
         env:
           VERSION: ${{ needs.version.outputs.version }}
         run: |
