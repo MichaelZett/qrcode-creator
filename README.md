@@ -22,6 +22,43 @@ Packages are built with `jpackage` (part of the JDK), which only works for the h
 matrix (`.github/workflows/build.yml`) builds on Linux, Windows and macOS.
 Locally: `./gradlew appImage` → `build/app-image/`.
 
+## Verifying downloads
+
+Every release contains `SHA256SUMS` with the checksums of the ZIP files. Releases that also have `SHA256SUMS.asc`
+carry a GPG signature over that file, made with the key of Michael Zöller:
+
+```text
+037B 45BA 4CDD ACE9 8BEA  FEDC B44D DFE4 D21B 7E6C
+```
+
+1. Download the ZIP, `SHA256SUMS` and `SHA256SUMS.asc` into one folder.
+2. Import the public key and check the signature:
+
+   ```powershell
+   gpg --keyserver hkps://keys.openpgp.org --recv-keys 037B45BA4CDDACE98BEAFEDCB44DDFE4D21B7E6C
+   gpg --verify SHA256SUMS.asc SHA256SUMS
+   ```
+
+   `Good signature from "Michael Zöller <michael2.zoeller@gmail.com>"` means the file is genuine. The fingerprint
+   printed by `gpg` must match the one above (a warning that the key is not certified is normal for a key you have
+   not signed yourself).
+3. Compare the checksum of your download with the signed list:
+
+   ```powershell
+   # Windows
+   (Get-FileHash qr-creator-windows.zip -Algorithm SHA256).Hash.ToLower()
+   ```
+
+   ```bash
+   # Linux: checks every file from the list that is present
+   sha256sum --ignore-missing -c SHA256SUMS
+
+   # macOS: prints the hash of the ZIP
+   shasum -a 256 qr-creator-macos.zip
+   ```
+
+   On Windows and macOS the printed hash must equal the line for your ZIP in `SHA256SUMS`.
+
 ## Release process
 
 1. Remove the `-SNAPSHOT` suffix from `appVersion` in `gradle.properties`.
