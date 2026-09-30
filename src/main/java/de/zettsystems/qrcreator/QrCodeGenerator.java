@@ -16,10 +16,10 @@ public class QrCodeGenerator {
 
     public BufferedImage generate(String input, int width, int height) {
         if (input == null || input.isBlank()) {
-            throw new IllegalArgumentException("input darf nicht leer sein");
+            throw new IllegalArgumentException(Messages.get("error.input.blank"));
         }
         if (width <= 0 || height <= 0) {
-            throw new IllegalArgumentException("width und height müssen > 0 sein");
+            throw new IllegalArgumentException(Messages.get("error.size"));
         }
 
         try {
@@ -27,7 +27,7 @@ public class QrCodeGenerator {
             BitMatrix matrix = writer.encode(input, BarcodeFormat.QR_CODE, width, height);
             return MatrixToImageWriter.toBufferedImage(matrix);
         } catch (WriterException e) {
-            throw new IllegalStateException("QR-Code konnte nicht erzeugt werden", e);
+            throw new IllegalStateException(Messages.get("error.encode"), e);
         }
     }
 
@@ -36,16 +36,20 @@ public class QrCodeGenerator {
     }
 
     public void writeImage(BufferedImage image, Path outputFile) {
+        // ImageIO deletes the target before writing, which would silently replace an empty directory
+        if (Files.isDirectory(outputFile)) {
+            throw new IllegalArgumentException(Messages.get("error.directory", outputFile));
+        }
         try {
             Path parent = outputFile.toAbsolutePath().getParent();
             if (parent != null) {
                 Files.createDirectories(parent);
             }
             if (!ImageIO.write(image, "PNG", outputFile.toFile())) {
-                throw new IllegalStateException("Kein PNG-Writer verfügbar");
+                throw new IllegalStateException(Messages.get("error.nowriter"));
             }
         } catch (IOException e) {
-            throw new IllegalStateException("QR-Code konnte nicht geschrieben werden", e);
+            throw new IllegalStateException(Messages.get("error.write"), e);
         }
     }
 }

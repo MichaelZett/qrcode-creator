@@ -61,17 +61,17 @@ sonar {
         property 'sonar.projectKey', 'MichaelZett_qrcode-creator'
         property 'sonar.organization', 'michaelzett'
         property 'sonar.host.url', 'https://sonarcloud.io'
-        // Swing-Oberfläche ist nicht headless testbar
+        // The Swing UI cannot be tested headless
         property 'sonar.coverage.exclusions', '**/QrCreatorApp.java'
     }
 }
 
-// Kleines, ausführbares Paket pro Betriebssystem: jpackage (Teil des JDK) bündelt
-// die Anwendung mit einer per jlink auf java.desktop geschrumpften Laufzeit.
-// jpackage baut nur für das Betriebssystem, auf dem es läuft -> CI-Matrix.
+// Small, self-contained package per operating system: jpackage (part of the JDK) bundles
+// the application with a runtime that jlink has reduced to java.desktop.
+// jpackage only builds for the operating system it runs on -> CI matrix.
 tasks.register('appImage', Exec) {
     group = 'distribution'
-    description = 'Erzeugt ein eigenständiges App-Image (mit minimaler JRE) für das aktuelle Betriebssystem'
+    description = 'Creates a self-contained app image (with a minimal JRE) for the current operating system'
     dependsOn jar
 
     def inputDir = layout.buildDirectory.dir('jpackage-input')
