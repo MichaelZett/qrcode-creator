@@ -14,9 +14,9 @@ program including a minimal Java runtime – Java does not need to be installed.
 Unzip and start `QR-Creator` (`QR-Creator.exe` on Windows). Each release also has a `SHA256SUMS` file (and
 `SHA256SUMS.asc` if a GPG key is configured) to verify the downloads.
 
-Code signing policy: the Windows executable is signed with a certificate provided by the
-[SignPath Foundation](https://signpath.org), free code signing by [SignPath.io](https://signpath.io) (see *Signing*).
-The macOS package is not signed or notarized, so Gatekeeper may block it.
+The Windows executable is not code-signed (see *Signing*), so Windows SmartScreen may warn on the first start –
+choose *More info* → *Run anyway*. The macOS package is not signed or notarized either, so Gatekeeper may block it.
+To be sure a download is genuine, verify it with the signed checksums (see *Verifying downloads*).
 
 Packages are built with `jpackage` (part of the JDK), which only works for the host system, so the GitHub Actions
 matrix (`.github/workflows/build.yml`) builds on Linux, Windows and macOS.
@@ -72,8 +72,9 @@ For `-SNAPSHOT` versions CI only tests, analyzes and checks that packaging works
 
 Signing is optional and only happens for releases. Without the configuration the steps are skipped.
 
-- **Windows** (`QR-Creator.exe`): signed through [SignPath](https://signpath.io), which is free for open-source
-  projects. The private key stays in SignPath's HSM. Setup:
+- **Windows** (`QR-Creator.exe`): **not signed.** The application to the SignPath Foundation for a free certificate
+  was declined. The build still contains an optional [SignPath](https://signpath.io) step that stays skipped without
+  the configuration below, so it can be used if a certificate becomes available. Setup:
   1. Apply for a free certificate at [signpath.org](https://signpath.org) (the SignPath Foundation), using this
      repository and its Apache-2.0 license.
   2. In SignPath create the project, an artifact configuration from
@@ -89,8 +90,6 @@ Signing is optional and only happens for releases. Without the configuration the
      gh variable set SIGNPATH_SIGNING_POLICY_SLUG
      ```
 
-  Free code signing provided by [SignPath.io](https://signpath.io), certificate by
-  [SignPath Foundation](https://signpath.org).
 - **Linux** has no OS-level signing. The release always contains `SHA256SUMS`. If the secrets `GPG_PRIVATE_KEY`
   (ASCII-armored private key) and `GPG_PASSPHRASE` are set, `SHA256SUMS.asc` (detached signature) is added.
 - **macOS** is not signed yet (needs an Apple Developer account, `jpackage --mac-sign` and notarization).

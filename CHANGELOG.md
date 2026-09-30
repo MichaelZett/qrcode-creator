@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2 - 2026-09-30
+
+- Releases now include `SHA256SUMS.asc`, a GPG signature over `SHA256SUMS`; the README explains how to verify a download.
+- Windows code signing via SignPath was declined, so `QR-Creator.exe` stays unsigned and Windows SmartScreen may warn on
+  first start. The README no longer claims a signature and describes the workaround.
+
 ## 1.0.1 - 2026-09-30
 
 - The UI is available in German and English (follows the system language, switchable in the window).
