@@ -18,7 +18,7 @@ apply plugin: 'org.sonarqube'
 apply plugin: 'com.github.ben-manes.versions'
 
 group = 'de.zettsystems'
-version = project.findProperty('releaseVersion') ?: '1.0-SNAPSHOT'
+version = appVersion
 
 repositories {
     mavenCentral()

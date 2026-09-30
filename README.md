@@ -13,7 +13,15 @@ ZIP entpacken und `QR-Creator` (`QR-Creator.exe` unter Windows) starten.
 
 Gebaut wird mit `jpackage` (Teil des JDK) – das geht nur für das jeweilige Host-System, daher
 baut die GitHub-Actions-Matrix (`.github/workflows/build.yml`) auf Linux, Windows und macOS.
-Lokal: `./gradlew appImage` → `build/app-image/`. Ein Release (Tag `v1.0.<Run-Nr>` + GitHub-Release mit den drei ZIPs) entsteht nur manuell: Actions → Build → „Run workflow“ auf `main`. Ein Merge erzeugt kein Release.
+Lokal: `./gradlew appImage` → `build/app-image/`. 
+Release-Prozess:
+
+1. In `gradle.properties` den Suffix `-SNAPSHOT` von `appVersion` entfernen.
+2. In `CHANGELOG.md` den Abschnitt `## <appVersion> - <Datum>` anlegen (wird zum Release-Text).
+3. Auf `main` pushen: Die CI testet, baut die drei ZIPs, taggt `v<appVersion>` und erstellt das GitHub-Release.
+4. Danach setzt die CI `appVersion` selbst auf die nächste `-SNAPSHOT`-Version (`[skip ci]`) – vor dem Weiterarbeiten `git pull`.
+
+Bei `-SNAPSHOT`-Versionen wird nur getestet, analysiert und das Paketieren geprüft – es entsteht kein Release.
 
 ## SonarCloud
 
