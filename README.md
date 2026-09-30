@@ -1,4 +1,4 @@
-# qr-creator
+# ZettSystems QR-Creator
 
 Small Java tool that creates QR codes (URL/text, email, phone, Wi-Fi) as PNG files.
 
@@ -14,8 +14,9 @@ program including a minimal Java runtime – Java does not need to be installed.
 Unzip and start `QR-Creator` (`QR-Creator.exe` on Windows). Each release also has a `SHA256SUMS` file (and
 `SHA256SUMS.asc` if a GPG key is configured) to verify the downloads.
 
-The Windows executable is signed if SignPath is configured (see *Signing*). The macOS package is
-not signed or notarized, so Gatekeeper may block it.
+Code signing policy: the Windows executable is signed with a certificate provided by the
+[SignPath Foundation](https://signpath.org), free code signing by [SignPath.io](https://signpath.io) (see *Signing*).
+The macOS package is not signed or notarized, so Gatekeeper may block it.
 
 Packages are built with `jpackage` (part of the JDK), which only works for the host system, so the GitHub Actions
 matrix (`.github/workflows/build.yml`) builds on Linux, Windows and macOS.
