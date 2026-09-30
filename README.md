@@ -114,3 +114,7 @@ Important: URL-encode special characters and spaces (e.g. space = `%20`, line br
 ## License
 
 [Apache-2.0](LICENSE)
+
+## Privacy
+
+The program works offline and does not collect or transmit any data, see [PRIVACY.md](PRIVACY.md).
