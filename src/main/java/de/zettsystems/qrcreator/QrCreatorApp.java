@@ -91,7 +91,7 @@ final class QrCreatorApp {
         content.add(preview, BorderLayout.CENTER);
         content.add(decodePanel(), BorderLayout.SOUTH);
 
-        relabelActions.add(() -> frame.setTitle(Messages.get("app.title")));
+        relabelActions.add(() -> frame.setTitle(Messages.get("app.title") + " " + AppVersion.get()));
         relabelActions.add(() -> generateButton.setText(Messages.get("button.generate")));
         relabelActions.add(() -> saveButton.setText(Messages.get("button.save")));
         relabelActions.add(() -> decodeFileButton.setText(Messages.get("button.decodeFile")));

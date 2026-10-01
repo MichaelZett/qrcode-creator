@@ -1,0 +1,71 @@
+name: Bug report
+description: QR-Creator behaves differently than described in the README
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Not for security flaws.** If an image or input can make the program
+        run code, read or write files it should not touch, or a download turns
+        out not to match the signed checksums, close this form and use
+        [private reporting](https://github.com/MichaelZett/qrcode-creator/security/advisories/new)
+        instead.
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: What you observed, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: >
+        The steps that show it: which type you picked (URL/text, email, phone,
+        Wi-Fi), what you entered or which image you tried to read, which
+        button you clicked.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version of QR-Creator
+      description: The release you downloaded, or the commit if you built it yourself.
+      placeholder: "1.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+  - type: dropdown
+    id: start
+    attributes:
+      label: How you started it
+      options:
+        - Package from the releases (QR-Creator / QR-Creator.exe)
+        - "./gradlew run"
+        - Command line with arguments (e.g. --decode)
+    validations:
+      required: true
+  - type: textarea
+    id: image
+    attributes:
+      label: Image (only for problems reading a QR code)
+      description: >
+        Attach the image that cannot be read, **but only if it contains nothing
+        private** — a Wi-Fi code contains the password, a contact code a name
+        and number. If in doubt, create a code with harmless content that
+        shows the same problem.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or console output
+      render: text

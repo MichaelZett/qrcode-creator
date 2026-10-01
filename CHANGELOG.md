@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The window title shows the version, so a bug report can name it.
+
 ## 1.1.0 - 2026-10-01
 
 - Read QR codes: open an image (PNG, JPEG, GIF, BMP, TIFF), paste it from the clipboard (e.g. a screenshot) or drop
