@@ -1,10 +1,15 @@
 # ZettSystems QR-Creator
 
-Small Java tool that creates QR codes (URL/text, email, phone, Wi-Fi) as PNG files.
+Small Java tool that creates QR codes (URL/text, email, phone, Wi-Fi) as PNG files and reads the text of existing
+QR codes from images.
 
 Without arguments it opens a small UI: pick the type via radio button (URL/Text, email `mailto:`, phone `tel:`,
 Wi-Fi), enter the data, look at the QR code, save it as PNG. The UI is available in German and English; the
 language follows the system language and can be switched at the top right.
+
+To read a QR code, use the row at the bottom: *Open image …* (PNG, JPEG, GIF, BMP, TIFF), *From clipboard* (e.g. a
+screenshot or a file copied in the file manager) or drop the image onto the window. The encoded text appears in a
+dialog and can be copied. WebP and HEIC are not supported – convert them to PNG or JPEG first.
 With arguments the tool runs as a command-line program (see below).
 
 ## Download
@@ -131,6 +136,12 @@ The output file is set by the **second parameter**:
 ```
 
 Defaults if a parameter is missing: content `https://www.tg-heimfeld.com/`, output file `files/tgh.png`.
+
+Reading a QR code prints the encoded text (one line per code found):
+
+```powershell
+.\gradlew run --args="--decode files\my-qr.png"
+```
 
 ## `mailto` links
 

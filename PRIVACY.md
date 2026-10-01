@@ -7,6 +7,8 @@ QR-Creator runs entirely on your computer.
 - The text you enter (URL, email address, phone number, Wi-Fi name and password) is only used to draw the QR code
   in the window. It is written to disk only when you choose "Save as PNG" (or pass an output file on the command
   line), and only to the location you pick.
+- Images you open, paste or drop to read a QR code are only read on your computer and are not stored. The clipboard
+  is only read when you click "From clipboard".
 
 This program will not transfer any information to other networked systems unless specifically requested by the
 user or the person installing or operating it.

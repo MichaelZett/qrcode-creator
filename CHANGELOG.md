@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 - 2026-10-01
+
+- Read QR codes: open an image (PNG, JPEG, GIF, BMP, TIFF), paste it from the clipboard (e.g. a screenshot) or drop
+  it onto the window, and the UI shows the encoded text, ready to copy. Several codes in one image are all shown.
+- Command line: `--decode IMAGE_FILE` prints the encoded text.
+- Fixed: characters outside ISO-8859-1 (e.g. `€` or emoji) were encoded as `?`. Such content is now encoded as UTF-8.
+
 ## 1.0.2 - 2026-09-30
 
 - Releases now include `SHA256SUMS.asc`, a GPG signature over `SHA256SUMS`; the README explains how to verify a download.
