@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/MichaelZett/qrcode-creator/security/advisories/new
+    about: Never report a security flaw in a public issue. Use the private form.
+  - name: How to use QR-Creator
+    url: https://github.com/MichaelZett/qrcode-creator#readme
+    about: Download, verifying the download, the UI and the command line are described in the README.

@@ -41,6 +41,15 @@ java {
     }
 }
 
+// The version shown in the window title (AppVersion)
+processResources {
+    def appVersion = project.version.toString()
+    inputs.property('appVersion', appVersion)
+    filesMatching('**/version.properties') {
+        expand(version: appVersion)
+    }
+}
+
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport

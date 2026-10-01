@@ -159,6 +159,12 @@ mailto:max.mustermann@example.com?subject=Request&body=Hello%20Max%2C%0AI%20have
 
 Important: URL-encode special characters and spaces (e.g. space = `%20`, line break = `%0A`).
 
+## Feedback and contributing
+
+Found a bug or missing something? Open an [issue](../../issues/new/choose) – the forms ask for the version and the
+operating system. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before a pull request.
+**Security flaws** go through private reporting, not a public issue, see [SECURITY.md](SECURITY.md).
+
 ## License
 
 [Apache-2.0](LICENSE)

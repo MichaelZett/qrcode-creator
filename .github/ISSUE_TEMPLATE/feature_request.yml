@@ -1,0 +1,31 @@
+name: Feature request
+description: Something QR-Creator should be able to do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read the "What this tool will not do" section of
+        [CONTRIBUTING.md](https://github.com/MichaelZett/qrcode-creator/blob/main/CONTRIBUTING.md)
+        first. QR-Creator is a small offline tool on purpose — requests that
+        need a network connection, an account or a large new dependency are
+        usually declined.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What are you trying to do, and where does QR-Creator get in the way?
+        Describe the situation, not the solution you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: What you do today
+      description: How you work around it now, e.g. another tool or a hand-written payload.
+  - type: textarea
+    id: proposal
+    attributes:
+      label: A possible shape
+      description: Optional. A sketch of the UI, a command-line option, an example payload.
